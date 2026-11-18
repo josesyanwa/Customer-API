@@ -41,6 +41,8 @@ Build and test:
 ./mvnw clean install
 ```
 
+The automated integration test uses an in-memory H2 database and exercises account creation, deposits, transfers, and persisted balance lookups over the HTTP routes.
+
 Start the application:
 
 ```bash
