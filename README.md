@@ -5,7 +5,6 @@ A Java 17 and Spring Boot REST API for customer deposits, account-to-account tra
 ## Requirements
 
 - Java 17+
-- Java 17+
 - Docker with the Docker Compose plugin (or a PostgreSQL 16 database)
 
 ## Run locally
@@ -15,6 +14,8 @@ Start PostgreSQL from the project root:
 ```bash
 docker compose up -d
 ```
+
+If your Docker installation uses the legacy standalone Compose command instead, use `docker-compose up -d`.
 
 Compose creates the `banking` database with the local-development credentials `banking` / `banking`. These match the defaults in `src/main/resources/application.yml`:
 
@@ -29,6 +30,8 @@ Wait for PostgreSQL to become healthy before starting the application:
 ```bash
 docker compose ps
 ```
+
+With the legacy standalone command, use `docker-compose ps`.
 
 The Maven Wrapper downloads Maven 3.9.9 on first use, so a separate Maven installation is not required.
 
