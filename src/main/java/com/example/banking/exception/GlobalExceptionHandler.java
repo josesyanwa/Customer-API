@@ -61,7 +61,6 @@ public class GlobalExceptionHandler {
         String message = exception instanceof DuplicateReferenceException
                 ? exception.getMessage()
                 : "A database constraint was violated";
-        logger.warn("Request conflict at {}: {}", request.getRequestURI(), message);
         return error(HttpStatus.CONFLICT, message, request, Map.of());
     }
 
@@ -84,6 +83,8 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ApiError> error(
             HttpStatus status, String message, HttpServletRequest request, Map<String, String> fieldErrors) {
+        logger.warn("Request failed: status={}, path={}, message={}",
+                status.value(), request.getRequestURI(), message);
         return ResponseEntity.status(status)
                 .body(new ApiError(status.value(), Instant.now(), message, request.getRequestURI(), fieldErrors));
     }

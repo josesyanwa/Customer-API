@@ -94,7 +94,6 @@ class BankingServiceTest {
 
     @Test
     void transferRejectsSameAccount() {
-        when(transactionRepository.existsByReferenceId("transfer-3")).thenReturn(false);
         assertThrows(InvalidTransactionException.class, () -> bankingService.transfer(new TransferRequest(
                 "transfer-3", "1000000001", "1000000001", new BigDecimal("1.00"))));
     }
