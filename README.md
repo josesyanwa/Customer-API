@@ -5,38 +5,51 @@ A Java 17 and Spring Boot REST API for customer deposits, account-to-account tra
 ## Requirements
 
 - Java 17+
-- Maven 3.9+
-- Docker with Docker Compose (or a PostgreSQL 16 database)
+- Docker with the Docker Compose plugin (or a PostgreSQL 16 database)
 
 ## Run locally
 
-Start PostgreSQL:
+Start PostgreSQL from the project root:
 
 ```bash
 docker compose up -d
 ```
 
-The defaults in `application.yml` match `compose.yaml`. Override them with `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` for another PostgreSQL instance.
+If your Docker installation uses the legacy standalone Compose command instead, use `docker-compose up -d`.
+
+Compose creates the `banking` database with the local-development credentials `banking` / `banking`. These match the defaults in `src/main/resources/application.yml`:
+
+| Setting | Default |
+|---|---|
+| JDBC URL | `jdbc:postgresql://localhost:5432/banking` |
+| Username | `banking` |
+| Password | `banking` |
+
+Wait for PostgreSQL to become healthy before starting the application:
+
+```bash
+docker compose ps
+```
+
+With the legacy standalone command, use `docker-compose ps`.
+
+The Maven Wrapper downloads Maven 3.9.9 on first use, so a separate Maven installation is not required.
 
 Build and test:
 
 ```bash
-mvn clean install
+./mvnw clean install
 ```
+
+The automated integration test uses an in-memory H2 database and exercises account creation, deposits, transfers, and persisted balance lookups over the HTTP routes.
 
 Start the application:
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
-Hibernate creates/updates the tables on startup by default. Set `JPA_DDL_AUTO=validate` in environments where schema changes are managed separately. Three sample USD accounts are inserted only when their account numbers do not already exist:
-
-| Account number | Customer | Starting balance |
-|---|---|---:|
-| `1000000001` | Alex Morgan | 1250.00 USD |
-| `1000000002` | Jordan Lee | 800.00 USD |
-| `1000000003` | Taylor Kim | 2500.00 USD |
+Hibernate creates/updates the `accounts` and `transactions` tables on startup by default. Set `JPA_DDL_AUTO=validate` in environments where schema changes are managed separately. The application starts without creating sample accounts; create accounts through the API. Account data already present in your database is not deleted.
 
 ## API
 
@@ -69,6 +82,22 @@ curl -i http://localhost:8080/api/transactions \
     "description": "Initial deposit"
   }'
 ```
+
+### Create an account
+
+`POST /api/accounts` creates an account with a zero balance. The account number must be unique, and the currency must be a 3-letter uppercase code.
+
+```bash
+curl -i http://localhost:8080/api/accounts \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "accountNumber": "1000000001",
+    "customerName": "Alex Morgan",
+    "currency": "USD"
+  }'
+```
+
+The response includes the new account details and its initial balance. Duplicate account numbers return `409 Conflict`.
 
 ### Transfer funds
 

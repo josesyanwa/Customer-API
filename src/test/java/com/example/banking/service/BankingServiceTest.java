@@ -5,11 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.banking.dto.CreateAccountRequest;
 import com.example.banking.dto.RecordTransactionRequest;
 import com.example.banking.dto.TransferRequest;
 import com.example.banking.entity.Account;
 import com.example.banking.entity.BankingTransaction;
 import com.example.banking.entity.TransactionType;
+import com.example.banking.exception.DuplicateAccountException;
 import com.example.banking.exception.InsufficientFundsException;
 import com.example.banking.exception.InvalidTransactionException;
 import com.example.banking.repository.AccountRepository;
@@ -37,6 +39,31 @@ class BankingServiceTest {
     @BeforeEach
     void setUp() {
         bankingService = new BankingService(accountRepository, transactionRepository);
+    }
+
+    @Test
+    void createAccountSavesZeroBalanceAccount() {
+        when(accountRepository.existsByAccountNumber("2000000001")).thenReturn(false);
+        when(accountRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(Account.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = bankingService.createAccount(
+                new CreateAccountRequest("2000000001", "Casey Example", "USD"));
+
+        assertEquals("2000000001", response.accountNumber());
+        assertEquals("Casey Example", response.accountHolderName());
+        assertEquals("0.00", response.balance());
+        assertEquals("USD", response.currency());
+        verify(accountRepository).saveAndFlush(org.mockito.ArgumentMatchers.argThat(account ->
+                account.getBalance().equals(new BigDecimal("0.00"))));
+    }
+
+    @Test
+    void createAccountRejectsExistingAccountNumber() {
+        when(accountRepository.existsByAccountNumber("2000000001")).thenReturn(true);
+
+        assertThrows(DuplicateAccountException.class, () -> bankingService.createAccount(
+                new CreateAccountRequest("2000000001", "Casey Example", "USD")));
     }
 
     @Test
