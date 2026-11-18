@@ -47,13 +47,7 @@ Start the application:
 ./mvnw spring-boot:run
 ```
 
-Hibernate creates/updates the `accounts` and `transactions` tables on startup by default. Set `JPA_DDL_AUTO=validate` in environments where schema changes are managed separately. Three sample USD accounts are inserted only when their account numbers do not already exist:
-
-| Account number | Customer | Starting balance |
-|---|---|---:|
-| `1000000001` | Alex Morgan | 1250.00 USD |
-| `1000000002` | Jordan Lee | 800.00 USD |
-| `1000000003` | Taylor Kim | 2500.00 USD |
+Hibernate creates/updates the `accounts` and `transactions` tables on startup by default. Set `JPA_DDL_AUTO=validate` in environments where schema changes are managed separately. The application starts without creating sample accounts; create accounts through the API. Account data already present in your database is not deleted.
 
 ## API
 
@@ -86,6 +80,22 @@ curl -i http://localhost:8080/api/transactions \
     "description": "Initial deposit"
   }'
 ```
+
+### Create an account
+
+`POST /api/accounts` creates an account with a zero balance. The account number must be unique, and the currency must be a 3-letter uppercase code.
+
+```bash
+curl -i http://localhost:8080/api/accounts \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "accountNumber": "1000000001",
+    "customerName": "Alex Morgan",
+    "currency": "USD"
+  }'
+```
+
+The response includes the new account details and its initial balance. Duplicate account numbers return `409 Conflict`.
 
 ### Transfer funds
 

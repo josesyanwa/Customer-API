@@ -1,6 +1,7 @@
 package com.example.banking.service;
 
 import com.example.banking.dto.BalanceResponse;
+import com.example.banking.dto.CreateAccountRequest;
 import com.example.banking.dto.RecordTransactionRequest;
 import com.example.banking.dto.TransactionResponse;
 import com.example.banking.dto.TransferRequest;
@@ -8,12 +9,14 @@ import com.example.banking.entity.Account;
 import com.example.banking.entity.BankingTransaction;
 import com.example.banking.entity.TransactionStatus;
 import com.example.banking.entity.TransactionType;
+import com.example.banking.exception.DuplicateAccountException;
 import com.example.banking.exception.DuplicateReferenceException;
 import com.example.banking.exception.InsufficientFundsException;
 import com.example.banking.exception.InvalidTransactionException;
 import com.example.banking.exception.ResourceNotFoundException;
 import com.example.banking.repository.AccountRepository;
 import com.example.banking.repository.TransactionRepository;
+import java.math.BigDecimal;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,23 @@ public class BankingService {
     public BankingService(AccountRepository accountRepository, TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
+    }
+
+    @Transactional
+    public BalanceResponse createAccount(CreateAccountRequest request) {
+        if (accountRepository.existsByAccountNumber(request.accountNumber())) {
+            throw new DuplicateAccountException(request.accountNumber());
+        }
+        Account account = new Account(
+                request.accountNumber(), request.customerName(), BigDecimal.ZERO.setScale(2), request.currency());
+        try {
+            accountRepository.saveAndFlush(account);
+        } catch (DataIntegrityViolationException exception) {
+            throw new DuplicateAccountException(request.accountNumber());
+        }
+        logger.info("Account created: accountNumber={}, currency={}",
+                account.getAccountNumber(), account.getCurrency());
+        return BalanceResponse.from(account);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)

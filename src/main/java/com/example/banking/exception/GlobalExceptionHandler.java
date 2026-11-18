@@ -56,9 +56,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
     }
 
-    @ExceptionHandler({DuplicateReferenceException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler({
+        DuplicateReferenceException.class, DuplicateAccountException.class, DataIntegrityViolationException.class
+    })
     public ResponseEntity<ApiError> handleConflict(RuntimeException exception, HttpServletRequest request) {
-        String message = exception instanceof DuplicateReferenceException
+        String message = exception instanceof DuplicateReferenceException || exception instanceof DuplicateAccountException
                 ? exception.getMessage()
                 : "A database constraint was violated";
         return error(HttpStatus.CONFLICT, message, request, Map.of());
