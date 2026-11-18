@@ -5,32 +5,46 @@ A Java 17 and Spring Boot REST API for customer deposits, account-to-account tra
 ## Requirements
 
 - Java 17+
-- Maven 3.9+
-- Docker with Docker Compose (or a PostgreSQL 16 database)
+- Java 17+
+- Docker with the Docker Compose plugin (or a PostgreSQL 16 database)
 
 ## Run locally
 
-Start PostgreSQL:
+Start PostgreSQL from the project root:
 
 ```bash
 docker compose up -d
 ```
 
-The defaults in `application.yml` match `compose.yaml`. Override them with `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` for another PostgreSQL instance.
+Compose creates the `banking` database with the local-development credentials `banking` / `banking`. These match the defaults in `src/main/resources/application.yml`:
+
+| Setting | Default |
+|---|---|
+| JDBC URL | `jdbc:postgresql://localhost:5432/banking` |
+| Username | `banking` |
+| Password | `banking` |
+
+Wait for PostgreSQL to become healthy before starting the application:
+
+```bash
+docker compose ps
+```
+
+The Maven Wrapper downloads Maven 3.9.9 on first use, so a separate Maven installation is not required.
 
 Build and test:
 
 ```bash
-mvn clean install
+./mvnw clean install
 ```
 
 Start the application:
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
-Hibernate creates/updates the tables on startup by default. Set `JPA_DDL_AUTO=validate` in environments where schema changes are managed separately. Three sample USD accounts are inserted only when their account numbers do not already exist:
+Hibernate creates/updates the `accounts` and `transactions` tables on startup by default. Set `JPA_DDL_AUTO=validate` in environments where schema changes are managed separately. Three sample USD accounts are inserted only when their account numbers do not already exist:
 
 | Account number | Customer | Starting balance |
 |---|---|---:|
