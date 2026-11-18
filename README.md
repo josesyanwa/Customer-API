@@ -49,6 +49,10 @@ Start the application:
 ./mvnw spring-boot:run
 ```
 
+### Test with Postman
+
+Import [`Postman/Banking-API.postman_collection.json`](./Postman/Banking-API.postman_collection.json) into Postman. Set the `baseUrl` collection variable to the running API address (default `http://localhost:8081` if started with `SERVER_PORT=8081`), then run the collection in order with the Collection Runner. The requests create two fresh accounts, deposit `$100.00`, transfer `$25.00`, and assert the resulting `$75.00` and `$25.00` balances. Account numbers and transaction references are generated for each run.
+
 Hibernate creates/updates the `accounts` and `transactions` tables on startup by default. Set `JPA_DDL_AUTO=validate` in environments where schema changes are managed separately. The application starts without creating sample accounts; create accounts through the API. Account data already present in your database is not deleted.
 
 ## API
